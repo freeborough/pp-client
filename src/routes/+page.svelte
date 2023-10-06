@@ -34,7 +34,7 @@
 
   onMount(() => {
     log(`Creating peer: ${ourId}`);
-    peer = new Peer(ourId, { debug: 2 });
+    peer = new Peer(ourId, { debug: 0 });
 
     peer.on("connection", (conn) => {
       log(`peer.on.connection`);
