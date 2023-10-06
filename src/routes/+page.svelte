@@ -3,8 +3,12 @@
   import { Peer } from "peerjs";
 
   let stdout = "";
+  let logging = false;
+
   function log(message) {
-    stdout = `${stdout}\n${message}`;
+    if (logging) {
+      stdout = `${stdout}\n${message}`;
+    }
   }
 
   log("WebRTC Client");
@@ -12,7 +16,7 @@
   // Detrmine our identity based on our window position.
   let ourId;
   let theirId;
-  let message;
+  let messages = [];
 
   const idOne = "freeborough-one";
   const idTwo = "freeborough-two";
@@ -37,6 +41,7 @@
       conn.on("data", (data) => {
         log(`peer.on.connection.on.data:`);
         log(data);
+        messages = [`${theirId}: ${data}`, ...messages];
       });
 
       conn.on("open", () => {
@@ -55,6 +60,8 @@
     });
 
     getConnection();
+
+    document.getElementById("toSend").focus();
   });
 
   onDestroy(() => {
@@ -85,11 +92,21 @@
 
   function send(msg) {
     log(`send: ${msg}`);
+    messages = [`${ourId}: ${msg}`, ...messages];
     dataConnection.send(msg);
   }
 
   function sendMessage() {
-    send(message);
+    const toSend = document.getElementById("toSend");
+    send(`${toSend.value}`);
+    toSend.value = "";
+    toSend.focus();
+  }
+
+  function onKeyPress(e) {
+    if (e.code == "Enter") {
+      sendMessage();
+    }
   }
 
 </script>
@@ -104,8 +121,15 @@
   Their ID: {theirId}
 </div>
 
-<button on:click={connect}>Connect</button>
-<input type="text" bind:value={message} />
+<input type="text" id="toSend" on:keypress={onKeyPress} />
 <button on:click={sendMessage}>Send</button>
+
+<div class="messages">
+  {#if messages.length > 0}
+    {#each messages as message}
+      <div class="message">{message}</div>
+    {/each}
+  {/if}
+</div>
 
 <pre>{stdout}</pre>
